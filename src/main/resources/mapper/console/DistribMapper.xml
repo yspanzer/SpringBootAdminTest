@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.geekcattle.mapper.console.DistribMapper">
+    <resultMap id="BaseResultMap" type="com.geekcattle.model.console.Distrib">
+        <!--
+          WARNING - @mbg.generated
+        -->
+        <id column="uid" property="uid" jdbcType="VARCHAR"/>
+        <result column="distrib_num" property="distribNum" jdbcType="VARCHAR"/>
+        <result column="order_unit" property="orderUnit" jdbcType="VARCHAR"/>
+        <result column="productname" property="productname" jdbcType="VARCHAR"/>
+        <result column="factory" property="factory" jdbcType="VARCHAR"/>
+        <result column="unit" property="unit" jdbcType="VARCHAR"/>
+        <result column="number" property="number" jdbcType="DECIMAL"/>
+        <result column="shipment_time" property="shipmentTime" jdbcType="TIMESTAMP"/>
+        <result column="order_begin" property="orderBegin" jdbcType="TIMESTAMP"/>
+        <result column="order_end" property="orderEnd" jdbcType="TIMESTAMP"/>
+        <result column="order_man" property="orderMan" jdbcType="VARCHAR"/>
+        <result column="pick_begin" property="pickBegin" jdbcType="TIMESTAMP"/>
+        <result column="pick_end" property="pickEnd" jdbcType="TIMESTAMP"/>
+        <result column="picker" property="picker" jdbcType="VARCHAR"/>
+        <result column="data_man" property="dataMan" jdbcType="VARCHAR"/>
+        <result column="databillno" property="databillno" jdbcType="VARCHAR"/>
+        <result column="data_begin" property="dataBegin" jdbcType="TIMESTAMP"/>
+        <result column="data_end" property="dataEnd" jdbcType="TIMESTAMP"/>
+        <result column="distrib_check_man" property="distribCheckMan" jdbcType="VARCHAR"/>
+        <result column="distrib_check_begin" property="distribCheckBegin" jdbcType="TIMESTAMP"/>
+        <result column="distrib_check_end" property="distribCheckEnd" jdbcType="TIMESTAMP"/>
+        <result column="distrib_pack_man" property="distribPackMan" jdbcType="VARCHAR"/>
+        <result column="distrib_pack_begin" property="distribPackBegin" jdbcType="TIMESTAMP"/>
+        <result column="distrib_pack_end" property="distribPackEnd" jdbcType="TIMESTAMP"/>
+        <result column="distrib_deli_man" property="distribDeliMan" jdbcType="VARCHAR"/>
+        <result column="distrib_begin" property="distribBegin" jdbcType="TIMESTAMP"/>
+        <result column="distrib_end" property="distribEnd" jdbcType="TIMESTAMP"/>
+        <result column="receipt_addr" property="receiptAddr" jdbcType="VARCHAR"/>
+        <result column="sendout_time" property="sendoutTime" jdbcType="TIMESTAMP"/>
+        <result column="reciept_man" property="recieptMan" jdbcType="VARCHAR"/>
+        <result column="reciept_man_id" property="recieptManId" jdbcType="VARCHAR"/>
+        <result column="arrival_time" property="arrivalTime" jdbcType="TIMESTAMP"/>
+        <result column="remark" property="remark" jdbcType="VARCHAR"/>
+        <result column="state" property="state" jdbcType="BIT"/>
+        <result column="createdat" property="createdat" jdbcType="TIMESTAMP"/>
+        <result column="updatedat" property="updatedat" jdbcType="TIMESTAMP"/>
+        <result column="status" property="status" jdbcType="INTEGER"/>
+        <result column="recovery" property="recovery" jdbcType="INTEGER"/>
+        <result column="region_id" property="regionId" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <!--查询未完成配送列表-->
+    <select id="selectByRole" parameterType="Distrib" resultMap="BaseResultMap">
+        select * from distrib DI where DI.status = 0 and DI.state != 13
+        <if test="distribNum != null and distribNum != ''">
+            and DI.distrib_num like concat(concat('%',#{distribNum,jdbcType=VARCHAR}),'%')
+        </if>
+        <if test="shipmentTime != null and shipmentTime != ''">
+            and DI.shipment_time &lt;= (#{shipmentTime,jdbcType=VARCHAR})
+        </if>
+        <if test="receiptAddr != null and receiptAddr != ''">
+            and DI.receipt_addr like concat(concat('%',#{receiptAddr,jdbcType=VARCHAR}),'%')
+        </if>
+        <if test="createdat != null and createdat != ''">
+            and DI.createdat &gt;= (#{createdat,jdbcType=VARCHAR})
+        </if>
+        <if test="updatedat != null and updatedat != ''">
+            and DI.createdat &lt;= (#{updatedat,jdbcType=VARCHAR})
+        </if>
+        order by state asc,createdat desc
+    </select>
+
+    <!--查询已回收配送列表-->
+    <select id="selectRecoveryed" parameterType="Distrib" resultMap="BaseResultMap">
+        select * from distrib DI where DI.status = 0 and DI.recovery = 1
+        <if test="distribNum != null and distribNum != ''">
+            and DI.distrib_num like concat(concat('%',#{distribNum,jdbcType=VARCHAR}),'%')
+        </if>
+        <if test="receiptAddr != null and receiptAddr != ''">
+            and DI.receipt_addr like concat(concat('%',#{receiptAddr,jdbcType=VARCHAR}),'%')
+        </if>
+        order by state asc,createdat desc
+    </select>
+
+    <!--查询未回收配送列表-->
+    <select id="selectUnRecovery" parameterType="Distrib" resultMap="BaseResultMap">
+        select * from distrib DI where DI.status = 0 and DI.recovery = 0 and DI.state = 13
+        <if test="distribNum != null and distribNum != ''">
+            and DI.distrib_num like concat(concat('%',#{distribNum,jdbcType=VARCHAR}),'%')
+        </if>
+        <if test="receiptAddr != null and receiptAddr != ''">
+            and DI.receipt_addr like concat(concat('%',#{receiptAddr,jdbcType=VARCHAR}),'%')
+        </if>
+        order by state asc,createdat desc
+    </select>
+
+    <sql id = "selDitribSql">
+            uid,
+            distrib_num,
+            order_unit,
+            productname,
+            factory,
+            unit,
+            number,
+            shipment_time,
+            order_begin,
+            order_end,
+            concat(a.order_man,b.emp_code) as order_man,
+            concat(a.data_man,c.emp_code) as data_man,
+            concat(a.picker,d.emp_code) as picker,
+            pick_begin,
+            pick_end,
+            databillno,
+            data_begin,
+            data_end,
+            concat(a.distrib_check_man,e.emp_code) as distrib_check_man,
+            distrib_check_begin,
+            distrib_check_end,
+            concat(a.distrib_pack_man,f.emp_code) as distrib_pack_man,
+            distrib_pack_begin,
+            distrib_pack_end,
+            concat(a.distrib_deli_man,g.emp_code) as distrib_deli_man,
+            distrib_begin,
+            distrib_end,
+            receipt_addr,
+            sendout_time,
+            reciept_man,
+            reciept_man_id,
+            arrival_time,
+            remark,
+            state,
+            createdat,
+            updatedat,
+            recovery
+            from distrib a
+              left join employee_new b on b.emp_name = a.order_man
+              left join employee_new c on c.emp_name = a.data_man
+              left join employee_new d on d.emp_name = a.picker
+              left join employee_new e on e.emp_name = a.distrib_check_man
+              left join employee_new f on f.emp_name = a.distrib_pack_man
+              left join employee_new g on g.emp_name = a.distrib_deli_man
+    </sql>
+    <!--查询已完成配送列表-->
+    <select id="getAllDistribs" parameterType="Distrib" resultMap="BaseResultMap">
+    select
+          <include refid="selDitribSql"/>
+          where state = 13 and status = 0
+          <if test="distribNum != null and distribNum != ''">
+            and a.distrib_num like concat(concat('%',#{distribNum,jdbcType=VARCHAR}),'%')
+          </if>
+          <if test="receiptAddr != null and receiptAddr != ''">
+            and a.receipt_addr like concat(concat('%',#{receiptAddr,jdbcType=VARCHAR}),'%')
+          </if>
+          <if test="createdat != null and createdat != ''">
+            and a.createdat &gt;= (#{createdat,jdbcType=VARCHAR})
+          </if>
+          <if test="updatedat != null and updatedat != ''">
+            and a.createdat &lt;= (#{updatedat,jdbcType=VARCHAR})
+          </if>
+
+          order by createdat
+  </select>
+    <!--视图报表查询-->
+    <select id="getViewShowData"  resultType="java.util.HashMap">
+        select
+        DATE_FORMAT(a.createdat,'%Y-%m-%d')  date,
+        count(1) count
+        from distrib a
+        where 1 = 1
+        <if test="beginDate != null and beginDate != '' and endDate != null and endDate != '' ">
+            and a.createdat BETWEEN (#{beginDate,jdbcType=VARCHAR}) and (#{endDate,jdbcType=VARCHAR})
+        </if>
+        group by DATE_FORMAT(a.createdat,'%Y-%m-%d')
+        order by DATE_FORMAT(a.createdat,'%Y-%m-%d')
+    </select>
+
+    <sql id="selDistrib">
+        uid,
+        distrib_num,
+        order_unit,
+        productname,
+        factory,
+        unit,
+        number,
+        shipment_time,
+        order_begin,
+        order_end,
+        concat(a.order_man,b.emp_code) as order_man,
+        concat(a.data_man,c.emp_code) as data_man,
+        concat(a.picker,d.emp_code) as picker,
+        pick_begin,
+        pick_end,
+        databillno,
+        data_begin,
+        data_end,
+        concat(a.distrib_check_man,e.emp_code) as distrib_check_man,
+        distrib_check_begin,
+        distrib_check_end,
+        concat(a.distrib_pack_man,f.emp_code) as distrib_pack_man,
+        distrib_pack_begin,
+        distrib_pack_end,
+        concat(a.distrib_deli_man,g.emp_code) as distrib_deli_man,
+        distrib_begin,
+        distrib_end,
+        receipt_addr,
+        sendout_time,
+        reciept_man,
+        arrival_time,
+        remark,
+        state,
+        createdat,
+        updatedat,
+        recovery
+
+        from distrib a
+        left join employee_new b on b.emp_name = a.order_man
+        left join employee_new c on c.emp_name = a.data_man
+        left join employee_new d on d.emp_name = a.picker
+        left join employee_new e on e.emp_name = a.distrib_check_man
+        left join employee_new f on f.emp_name = a.distrib_pack_man
+        left join employee_new g on g.emp_name = a.distrib_deli_man
+    </sql>
+    <select id="getAllDistribsByRegionID" parameterType="int" resultMap="BaseResultMap">
+        select
+        <include refid="selDistrib"/>
+        where state != 13 and status = 0 and a.region_id = #{regionID}
+        order by createdat desc
+
+    </select>
+
+</mapper>

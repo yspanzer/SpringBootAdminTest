@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.geekcattle.mapper.console.ReceiptMapper" >
+  <resultMap id="BaseResultMap" type="com.geekcattle.model.console.Receipt" >
+    <!--
+      WARNING - @mbg.generated
+    -->
+    <id column="uid" property="uid" jdbcType="VARCHAR" />
+    <result column="receipt_num" property="receiptNum" jdbcType="VARCHAR" />
+    <result column="delivery_unit" property="deliveryUnit" jdbcType="VARCHAR" />
+    <result column="delivery_time" property="deliveryTime" jdbcType="TIMESTAMP" />
+    <result column="productname" property="productname" jdbcType="VARCHAR" />
+    <result column="factory" property="factory" jdbcType="VARCHAR" />
+    <result column="unit" property="unit" jdbcType="VARCHAR" />
+    <result column="number" property="number" jdbcType="DECIMAL" />
+    <result column="receipt_addr" property="receiptAddr" jdbcType="VARCHAR" />
+    <result column="receipt_time" property="receiptTime" jdbcType="TIMESTAMP" />
+    <result column="receipt_man" property="receiptMan" jdbcType="VARCHAR" />
+    <result column="receipt_time_begin" property="receiptTimeBegin" jdbcType="TIMESTAMP" />
+    <result column="receipt_time_end" property="receiptTimeEnd" jdbcType="TIMESTAMP" />
+    <result column="accep_re_man" property="accepReMan" jdbcType="VARCHAR" />
+    <result column="accep_re_begin" property="accepReBegin" jdbcType="TIMESTAMP" />
+    <result column="accep_re_end" property="accepReEnd" jdbcType="TIMESTAMP" />
+    <result column="accep_check_man" property="accepCheckMan" jdbcType="VARCHAR" />
+    <result column="accep_check_begin" property="accepCheckBegin" jdbcType="TIMESTAMP" />
+    <result column="accep_check_end" property="accepCheckEnd" jdbcType="TIMESTAMP" />
+    <result column="accep_back_man" property="accepBackMan" jdbcType="VARCHAR" />
+    <result column="accep_back_begin" property="accepBackBegin" jdbcType="TIMESTAMP" />
+    <result column="accep_back_end" property="accepBackEnd" jdbcType="TIMESTAMP" />
+    <result column="tally_man" property="tallyMan" jdbcType="VARCHAR" />
+    <result column="tally_begin" property="tallyBegin" jdbcType="TIMESTAMP" />
+    <result column="tally_end" property="tallyEnd" jdbcType="TIMESTAMP" />
+    <result column="remark" property="remark" jdbcType="VARCHAR" />
+    <result column="state" property="state" jdbcType="BIT" />
+    <result column="createdat" property="createdat" jdbcType="TIMESTAMP" />
+    <result column="updatedat" property="updatedat" jdbcType="TIMESTAMP" />
+    <result column="distribno" property="distribno" jdbcType="VARCHAR" />
+    <result column="transferno" property="transferno" jdbcType="VARCHAR" />
+    <result column="region_id" property="regionID" jdbcType="INTEGER" />
+  </resultMap>
+
+  <!--未完成查询-->
+  <select id="getAllReceipts" parameterType="Receipt" resultMap="BaseResultMap">
+    select
+    a.id,
+    a.uid,
+    receipt_num,
+    delivery_unit,
+    delivery_time,
+    productname,
+    factory,
+    unit,
+    number,
+    receipt_addr,
+    receipt_time,
+    concat(a.receipt_man,b.emp_code) as receipt_man,
+    receipt_time_begin,
+    receipt_time_end,
+    concat(a.accep_re_man,c.emp_code) as accep_re_man,
+    accep_re_begin,
+    accep_re_end,
+    concat(a.accep_check_man,d.emp_code) as accep_check_man,
+    accep_check_begin,
+    accep_check_end,
+    concat(a.accep_back_man,e.emp_code) as accep_back_man,
+    accep_back_begin,
+    accep_back_end,
+    concat(a.tally_man,f.emp_code) as tally_man,
+    tally_begin,
+    tally_end,
+    remark,
+    state,
+    createdat,
+    updatedat,
+    distribno,
+    transferno
+    from receipt a
+    left join employee_new b on b.emp_name = a.receipt_man
+    left join employee_new c on c.emp_name = a.accep_re_man
+    left join employee_new d on d.emp_name = a.accep_check_man
+    left join employee_new e on e.emp_name = a.accep_back_man
+    left join employee_new f on f.emp_name = a.tally_man
+    where a.state != 11
+    <if test="receiptNum != null and receiptNum != ''">
+      and a.receipt_num like concat(concat('%',#{receiptNum,jdbcType=VARCHAR}),'%')
+    </if>
+    <if test="receiptAddr != null and receiptAddr != ''">
+      and a.receipt_addr like concat(concat('%',#{receiptAddr,jdbcType=VARCHAR}),'%')
+    </if>
+    <if test="createdat != null" >
+      and a.createdat &gt;= (#{createdat,jdbcType=TIMESTAMP})
+    </if>
+    <if test="updatedat != null">
+      and a.createdat &lt;= (#{updatedat,jdbcType=TIMESTAMP})
+    </if>
+    order by a.createdat desc
+  </select>
+
+
+  <!--已完成查询-->
+  <select id="getAllReceiptsWithFullState" parameterType="Receipt" resultMap="BaseResultMap">
+    select
+    a.id,
+    a.uid,
+    receipt_num,
+    delivery_unit,
+    delivery_time,
+    productname,
+    factory,
+    unit,
+    number,
+    receipt_addr,
+    receipt_time,
+    concat(a.receipt_man,b.emp_code) as receipt_man,
+    receipt_time_begin,
+    receipt_time_end,
+    concat(a.accep_re_man,c.emp_code) as accep_re_man,
+    accep_re_begin,
+    accep_re_end,
+    concat(a.accep_check_man,d.emp_code) as accep_check_man,
+    accep_check_begin,
+    accep_check_end,
+    concat(a.accep_back_man,e.emp_code) as accep_back_man,
+    accep_back_begin,
+    accep_back_end,
+    concat(a.tally_man,f.emp_code) as tally_man,
+    tally_begin,
+    tally_end,
+    remark,
+    state,
+    createdat,
+    updatedat,
+    distribno,
+    transferno
+    from receipt a
+    left join employee_new b on b.emp_name = a.receipt_man
+    left join employee_new c on c.emp_name = a.accep_re_man
+    left join employee_new d on d.emp_name = a.accep_check_man
+    left join employee_new e on e.emp_name = a.accep_back_man
+    left join employee_new f on f.emp_name = a.tally_man
+    where a.state = 11
+    <if test="receiptNum != null and receiptNum != ''">
+      and a.receipt_num like concat(concat('%',#{receiptNum,jdbcType=VARCHAR}),'%')
+    </if>
+    <if test="receiptAddr != null and receiptAddr != ''">
+      and a.receipt_addr like concat(concat('%',#{receiptAddr,jdbcType=VARCHAR}),'%')
+    </if>
+    <if test="createdat != null">
+      and a.createdat &gt;= (#{createdat,jdbcType=TIMESTAMP})
+    </if>
+    <if test="updatedat != null">
+      and a.createdat &lt;= (#{updatedat,jdbcType=TIMESTAMP})
+    </if>
+     order by a.createdat desc
+  </select>
+
+  <!--视图报表查询-->
+  <select id="getViewShowData"  resultType="java.util.HashMap">
+    select
+    DATE_FORMAT(a.createdat,'%Y-%m-%d')  date,
+    count(1) count
+    from receipt a
+    where 1 = 1
+    <if test="beginDate != null and beginDate != '' and endDate != null and endDate != '' ">
+      and a.createdat BETWEEN (#{beginDate,jdbcType=VARCHAR}) and (#{endDate,jdbcType=VARCHAR})
+    </if>
+    group by DATE_FORMAT(a.createdat,'%Y-%m-%d')
+    order by DATE_FORMAT(a.createdat,'%Y-%m-%d')
+	</select>
+
+  <sql id="selReceiptSql">
+    a.id,
+    a.uid,
+    receipt_num,
+    delivery_unit,
+    delivery_time,
+    productname,
+    factory,
+    unit,
+    number,
+    receipt_addr,
+    receipt_time,
+    concat(a.receipt_man,b.emp_code) as receipt_man,
+    receipt_time_begin,
+    receipt_time_end,
+    concat(a.accep_re_man,c.emp_code) as accep_re_man,
+    accep_re_begin,
+    accep_re_end,
+    concat(a.accep_check_man,d.emp_code) as accep_check_man,
+    accep_check_begin,
+    accep_check_end,
+    concat(a.accep_back_man,e.emp_code) as accep_back_man,
+    accep_back_begin,
+    accep_back_end,
+    concat(a.tally_man,f.emp_code) as tally_man,
+    tally_begin,
+    tally_end,
+    remark,
+    state,
+    createdat,
+    updatedat,
+    distribno,
+    transferno
+    from receipt a
+    left join employee_new b on b.emp_name = a.receipt_man
+    left join employee_new c on c.emp_name = a.accep_re_man
+    left join employee_new d on d.emp_name = a.accep_check_man
+    left join employee_new e on e.emp_name = a.accep_back_man
+    left join employee_new f on f.emp_name = a.tally_man
+  </sql>
+  <select id="getAllReceiptsByRegionID" parameterType="int" resultMap="BaseResultMap">
+    select
+    <include refid="selReceiptSql" />
+    where 1 = 1  and  a.state != 11
+    and a.region_id = #{regionID}
+
+
+  </select>
+</mapper>

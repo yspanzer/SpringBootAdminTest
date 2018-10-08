@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.geekcattle.mapper.console.EmployeeNewMapper" >
+  <resultMap id="BaseResultMap" type="com.geekcattle.model.console.EmployeeNew" >
+    <!--
+      WARNING - @mbg.generated
+    -->
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="emp_code" property="empCode" jdbcType="VARCHAR" />
+    <result column="emp_name" property="empName" jdbcType="VARCHAR" />
+    <result column="emp_desc" property="empDesc" jdbcType="VARCHAR" />
+    <result column="emp_state" property="empState" jdbcType="INTEGER" />
+    <result column="dept_id" property="deptID" jdbcType="INTEGER" />
+    <result column="region_id" property="regionID" jdbcType="INTEGER" />
+  </resultMap>
+
+  <select id="getEmployIdByName" resultType="int" parameterType="string">
+    select id from employee_new where emp_name = #{empName}
+  </select>
+
+  <select id="getAllEmpsByDepartment" resultType="com.geekcattle.model.console.EmployeeNew" parameterType="int">
+    select emp_name as empName from employee_new where dept_id=#{deptId}
+  </select>
+  <select id="getEmployeeByUserId" resultMap="BaseResultMap" parameterType="string">
+    select a.* from employee_new a
+          left join user_emp b on b.emp_id =  a.id
+          left join admin c on c.uid = b.user_id
+          where c.uid = #{uid}
+  </select>
+
+  <select id="getAdminByEmployeeId" resultType="Admin" parameterType="int">
+    select a.* from admin a
+        left join user_emp b on b.user_id = a.uid
+        left join employee_new c on c.id = b.emp_id
+        where c.id = #{eid}
+  </select>
+</mapper>

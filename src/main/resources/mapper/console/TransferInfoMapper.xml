@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.geekcattle.mapper.console.TransferInfoMapper" >
+  <resultMap id="BaseResultMap" type="com.geekcattle.model.console.TransferInfo" >
+    <!--
+      WARNING - @mbg.generated
+    -->
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="uid" property="uid" jdbcType="VARCHAR" />
+    <result column="bizno" property="bizno" jdbcType="VARCHAR" />
+    <result column="orderunit" property="orderunit" jdbcType="VARCHAR" />
+    <result column="ordertime" property="ordertime" jdbcType="TIMESTAMP" />
+    <result column="product_name" property="productName" jdbcType="VARCHAR" />
+    <result column="unit" property="unit" jdbcType="VARCHAR" />
+    <result column="quantity" property="quantity" jdbcType="INTEGER" />
+    <result column="manufacture" property="manufacture" jdbcType="VARCHAR" />
+    <result column="transferunit" property="transferunit" jdbcType="VARCHAR" />
+    <result column="transferman" property="transferman" jdbcType="VARCHAR" />
+    <result column="transfer_time_begin" property="transferTimeBegin" jdbcType="TIMESTAMP" />
+    <result column="transfer_time_end" property="transferTimeEnd" jdbcType="TIMESTAMP" />
+    <result column="fetch_goods_man" property="fetchGoodsMan" jdbcType="VARCHAR" />
+    <result column="fetch_goods_begin" property="fetchGoodsBegin" jdbcType="TIMESTAMP" />
+    <result column="fetch_goods_end" property="fetchGoodsEnd" jdbcType="TIMESTAMP" />
+    <result column="data_man" property="dataMan" jdbcType="VARCHAR" />
+    <result column="data_time_begin" property="dataTimeBegin" jdbcType="TIMESTAMP" />
+    <result column="data_time_end" property="dataTimeEnd" jdbcType="TIMESTAMP" />
+    <result column="check_man" property="checkMan" jdbcType="VARCHAR" />
+    <result column="check_time_begin" property="checkTimeBegin" jdbcType="TIMESTAMP" />
+    <result column="check_time_end" property="checkTimeEnd" jdbcType="TIMESTAMP" />
+    <result column="recheck_man" property="recheckMan" jdbcType="VARCHAR" />
+    <result column="recheck_time_begin" property="recheckTimeBegin" jdbcType="TIMESTAMP" />
+    <result column="recheck_time_end" property="recheckTimeEnd" jdbcType="TIMESTAMP" />
+    <result column="pack_man" property="packMan" jdbcType="VARCHAR" />
+    <result column="pack_time_begin" property="packTimeBegin" jdbcType="TIMESTAMP" />
+    <result column="pack_time_end" property="packTimeEnd" jdbcType="TIMESTAMP" />
+    <result column="delivery_man" property="deliveryMan" jdbcType="VARCHAR" />
+    <result column="delivery_time_begin" property="deliveryTimeBegin" jdbcType="TIMESTAMP" />
+    <result column="delivery_time_end" property="deliveryTimeEnd" jdbcType="TIMESTAMP" />
+    <result column="receive_address" property="receiveAddress" jdbcType="VARCHAR" />
+    <result column="receive_time" property="receiveTime" jdbcType="TIMESTAMP" />
+    <result column="receive_man" property="receiveMan" jdbcType="VARCHAR" />
+    <result column="receive_end_time" property="receiveEndTime" jdbcType="TIMESTAMP" />
+    <result column="state" property="state" jdbcType="INTEGER" />
+    <result column="remark" property="remark" jdbcType="VARCHAR" />
+    <result column="billno" property="billno" jdbcType="VARCHAR" />
+    <result column="createtime" property="createtime" jdbcType="TIMESTAMP" />
+    <result column="modifytime" property="modifytime" jdbcType="TIMESTAMP" />
+      <result column="recovery" property="recovery" jdbcType="INTEGER"/>
+      <result column="region_id" property="regionId" jdbcType="INTEGER"/>
+  </resultMap>
+
+    <!--查询未回收调货列表-->
+    <select id="selectUnRecovery" parameterType="TransferInfo" resultMap="BaseResultMap">
+        select * from transfer_info TR where TR.recovery = 0 and TR.state = 15
+        <if test="bizno != null and bizno != ''">
+            and TR.bizno like concat(concat('%',#{bizno,jdbcType=VARCHAR}),'%')
+        </if>
+        <if test="receiveAddress != null and receiveAddress != ''">
+            and TR.receive_address like concat(concat('%',#{receiveAddress,jdbcType=VARCHAR}),'%')
+        </if>
+        order by TR.createtime desc
+    </select>
+
+  <select id="getAllTransferInfoeWithDone" parameterType="TransferInfo" resultMap="BaseResultMap">
+    select
+            a.id,
+            a.uid,
+            a.bizno,
+            a.orderunit,
+            a.ordertime,
+            a.product_name,
+            a.unit,
+            a.quantity,
+            a.manufacture,
+            transferunit,
+            concat(a.transferman,i.emp_code) as transferman,
+            transfer_time_begin,
+            transfer_time_end,
+            concat(a.fetch_goods_man,b.emp_code) as fetch_goods_man,
+            fetch_goods_begin,
+            fetch_goods_end,
+            concat(a.data_man,c.emp_code) as data_man,
+            data_time_begin,
+            data_time_end,
+            concat(a.check_man,d.emp_code) as check_man,
+            check_time_begin,
+            check_time_end,
+            concat(a.recheck_man,e.emp_code) as recheck_man,
+            recheck_time_begin,
+            recheck_time_end,
+            concat(a.pack_man,f.emp_code) as pack_man,
+            pack_time_begin,
+            pack_time_end,
+            concat(a.delivery_man,g.emp_code) as delivery_man,
+            delivery_time_begin,
+            delivery_time_end,
+            receive_address,
+            receive_time,
+            receive_man,
+            receive_end_time,
+            a.state,
+            remark,
+            a.billno,
+            a.createtime,
+            a.modifytime,
+            a.recovery
+            from transfer_info a
+            left join employee_new b on b.emp_name = a.fetch_goods_man
+            left join employee_new c on c.emp_name = a.data_man
+            left join employee_new d on d.emp_name = a.check_man
+            left join employee_new e on e.emp_name = a.recheck_man
+            left join employee_new f on f.emp_name = a.pack_man
+            left join employee_new g on g.emp_name = a.delivery_man
+            left join employee_new h on h.emp_name = a.receive_man
+            left join employee_new i on i.emp_name = a.transferman
+            where a.state=15
+            <if test="bizno != null and bizno != ''">
+              and a.bizno like concat(concat('%',#{bizno,jdbcType=VARCHAR}),'%')
+            </if>
+            <if test="receiveAddress != null and receiveAddress != ''">
+              and a.receive_address like concat(concat('%',#{receiveAddress,jdbcType=VARCHAR}),'%')
+            </if>
+              <if test="createtime != null">
+                  and a.createtime &gt;= (#{createtime,jdbcType=TIMESTAMP})
+              </if>
+              <if test="modifytime != null">
+                  and a.createtime &lt;= (#{modifytime,jdbcType=TIMESTAMP})
+              </if>
+            order by a.createtime desc
+  </select>
+    <sql id="selTransferInfo">
+         a.id,
+            a.uid,
+            a.bizno,
+            a.orderunit,
+            a.ordertime,
+            a.product_name,
+            a.unit,
+            a.quantity,
+            a.manufacture,
+            transferunit,
+            concat(a.transferman,i.emp_code) as transferman,
+            transfer_time_begin,
+            transfer_time_end,
+            concat(a.fetch_goods_man,b.emp_code) as fetch_goods_man,
+            fetch_goods_begin,
+            fetch_goods_end,
+            concat(a.data_man,c.emp_code) as data_man,
+            data_time_begin,
+            data_time_end,
+            concat(a.check_man,d.emp_code) as check_man,
+            check_time_begin,
+            check_time_end,
+            concat(a.recheck_man,e.emp_code) as recheck_man,
+            recheck_time_begin,
+            recheck_time_end,
+            concat(a.pack_man,f.emp_code) as pack_man,
+            pack_time_begin,
+            pack_time_end,
+            concat(a.delivery_man,g.emp_code) as delivery_man,
+            delivery_time_begin,
+            delivery_time_end,
+            receive_address,
+            receive_time,
+            receive_man,
+            receive_end_time,
+            a.state,
+            remark,
+            a.billno,
+            a.createtime,
+            a.modifytime,
+            a.recovery,
+            a.region_id
+        from transfer_info a
+        left join employee_new b on b.emp_name = a.fetch_goods_man
+        left join employee_new c on c.emp_name = a.data_man
+        left join employee_new d on d.emp_name = a.check_man
+        left join employee_new e on e.emp_name = a.recheck_man
+        left join employee_new f on f.emp_name = a.pack_man
+        left join employee_new g on g.emp_name = a.delivery_man
+        left join employee_new h on h.emp_name = a.receive_man
+        left join employee_new i on i.emp_name = a.transferman
+    </sql>
+  <select id="getAllTransferInfoWithNoDone" parameterType="TransferInfo" resultMap="BaseResultMap">
+        select
+           <include refid="selTransferInfo"/>
+        where a.state != 15
+        <if test="bizno != null and bizno != ''">
+          and a.bizno like concat(concat('%',#{bizno,jdbcType=VARCHAR}),'%')
+        </if>
+        <if test="receiveAddress != null and receiveAddress != ''">
+          and a.receive_address like concat(concat('%',#{receiveAddress,jdbcType=VARCHAR}),'%')
+        </if>
+        <if test="createtime != null">
+          and a.createtime &gt;= (#{createtime,jdbcType=TIMESTAMP})
+        </if>
+        <if test="modifytime != null">
+          and a.createtime &lt;= (#{modifytime,jdbcType=TIMESTAMP})
+        </if>
+        order by a.createtime desc
+  </select>
+
+
+    <!--视图报表查询-->
+    <select id="getViewShowData"  resultType="java.util.HashMap">
+        select
+        DATE_FORMAT(a.createtime,'%Y-%m-%d')  date,
+        count(1) count
+        from transfer_info a
+        where 1 = 1
+        <if test="beginDate != null and beginDate != '' and endDate != null and endDate != '' ">
+            and a.createtime BETWEEN (#{beginDate,jdbcType=VARCHAR}) and (#{endDate,jdbcType=VARCHAR})
+        </if>
+        group by DATE_FORMAT(a.createtime,'%Y-%m-%d')
+        order by DATE_FORMAT(a.createtime,'%Y-%m-%d')
+	</select>
+
+    <select id="getAllTransferInfoByRegionID" parameterType="int" resultMap="BaseResultMap">
+      select 
+        <include refid="selTransferInfo"/>
+            where 1=1 and a.state != 15
+              and a.region_id = #{regionID}
+            order by a.createtime desc
+
+
+    </select>
+</mapper>

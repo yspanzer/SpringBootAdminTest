@@ -1,0 +1,502 @@
+<!DOCTYPE HTML>
+
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head th:include="console/header">
+</head>
+<body>
+<style>
+    .pagination-info{display:none;}
+    .fixed-table-header,
+    .fixed-table-body {
+        /*font-size: 1.6rem;*/
+        font-size: 18px;
+    }
+
+
+    /* thead 1 */
+    /*.fixed-table-header thead tr:first-child {*/
+        /*font-size: 2.5rem;*/
+        /*color: #f00;*/
+    /*}*/
+    /*.fixed-table-header thead tr:first-child .th-inner {*/
+        /*!* line-height: 45px !important; *!*/
+    /*}*/
+    /*.fixed-table-header thead tr:nth-child(2),*/
+    /*.fixed-table-header thead tr:nth-child(3) {*/
+        /*color: #fff;*/
+        /*background-color:#3c8dbc;*/
+    /*}*/
+
+    /* thead 2  */
+   .fixed-table-header thead tr:first-child {
+        /*font-size: 2.5rem;*/
+        font-size: 28px;
+        color: #f00;
+    }
+    .fixed-table-header thead tr:first-child .th-inner {
+        line-height: 45px !important;
+    }
+    .fixed-table-header thead tr:nth-child(2),
+    .fixed-table-header thead tr:nth-child(3) {
+        /*font-size: 16px;*/
+        color: #000;
+        background-color:#249020;
+    }
+
+    /* tbody */
+    .fixed-table-body tbody tr:nth-child(2n+1) {
+        background-color: #c8edff !important;
+    }
+    .fixed-table-body tbody tr.selected,
+    .fixed-table-body tbody tr.selected td,
+    .fixed-table-body tbody tr:hover td {
+        background-color:#00a0e9 !important;
+    }
+
+    .fixed-table-body tbody tr td:nth-child(3) {
+        font-weight:bold;
+        color: #555;
+    }
+
+    /* <td style="text-align: center; "><div>457</div><div>15:55</div></td> */
+    .fixed-table-body tbody td > div { /* td分上下片时，值用div包裹 */
+        box-sizing: border-box;
+    }
+    .fixed-table-body tbody td > div:last-child {
+        /*border-top: 1px solid #367fa9;*/
+    }
+
+    .table th,
+    .table td {
+        vertical-align: middle !important;/*居中*/
+    }
+
+    .br_border {
+        border-top: 1px solid #367fa9;
+    }
+
+    .fixed-table-body tbody td {
+        padding: 8px 0!important;
+    }
+    .fixed-table-body tbody td > div {
+        box-sizing:border-box;
+        /*height: 20px;*/
+
+    }
+    .bootstrap-table .table{
+        font-weight: bold !important;
+    }
+
+</style>
+<!--<section class="content-header">
+    <h1>收货管理</h1>
+    <small>列表管理</small>
+</section>-->
+<div id="fullpage">
+
+    <section class="section content table-content">
+        <table id="dataGrid2"></table>
+    </section>
+    <section class="section content table-content">
+        <table id="dataGrid3"></table>
+    </section>
+    <section class="section content table-content">
+        <table id="dataGrid"></table>
+    </section>
+
+</div>
+<div id="toolbar" style="display: none">
+    <a href="/console/receipt/form" class="btn btn-primary">新增收货</a>
+    <a status="1" href="javascript:;" class="btn btn-primary">接货处理</a>
+    <a status="2" href="javascript:;" class="btn btn-primary">验货处理</a>
+    <a status="3" href="javascript:;" class="btn btn-primary">复核处理</a>
+    <a status="4" href="javascript:;" class="btn btn-primary">退单处理</a>
+    <a status="5" href="javascript:;" class="btn btn-primary">上架处理</a>
+</div>
+<div th:include="console/footer"></div>
+</body>
+<script type="text/javascript">
+
+    /*<![CDATA[*/
+
+    var timer1;
+    var timer2;
+    var timer3;
+    var timeInterVal = 5000;
+
+    $table = $("#dataGrid");
+    $table2 = $("#dataGrid2");
+    $table3 = $("#dataGrid3");
+
+    $(function () {
+        initDataGrid();
+        initDataGrid2();
+        initDataGrid3();
+        $(window).resize(function () {
+            $table.bootstrapTable('resetView');
+        });
+
+
+        $('#fullpage').fullpage({
+            // sectionsColor : ['#1bbc9b', '#4BBFC3', '#7BAABE', '#f90'],
+            continuousVertical: true
+        });
+
+        setInterval(function(){
+            $.fn.fullpage.moveSectionDown();
+        }, 40000);
+
+    });
+
+    function initDataGrid() {
+        $table.bootstrapTable({
+            height: $(window).height(),
+            idField: "uid",
+            // checkboxHeader: true,
+            clickToSelect: true, //是否启用点击选中行
+            sortName: 'createdat',
+            sortOrder: 'asc',
+            pagination: true,
+            sidePagination: 'server',
+            onlyInfoPagination:true,
+            pageSize: 8,
+            pageList: [20, 40, 50, 100],
+            singleSelect: true,
+            columns: [
+                [{title: "物流中心收货信息一览表", halign: "center", align: "center", colspan: 16}],
+
+                [
+                    {title: "医院/厂家", valign: "middle", align: "center", colspan: 9, rowspan: 1},
+                    {title: "配送部", valign: "middle", align: "center", colspan: 1, rowspan: 1},
+                    {title: "采购/仓储部", valign: "middle", align: "center", colspan: 1, rowspan: 1},
+                    {title: "采购/数据部", valign: "middle", align: "center", colspan: 2, rowspan: 1},
+                    {title: "仓储部", valign: "middle", align: "center", colspan: 4, rowspan: 1}
+                ],
+
+                [
+                    //增加选择列
+                    {checkbox: true},
+                    /*{title: "操作", field: "operate", align: 'center', events: operateEvents, formatter: operateFormatter},*/
+                    // {title: "状态", field: "state", align: "center", width: '50'},
+                    {
+                        field : 'Number',
+                        title : '序号',
+                        align: 'center',
+                        width: 20,
+                        formatter : function(value, row, index) {
+                            //return index + 1;
+                            var pageSize=$table2.bootstrapTable('getOptions').pageSize;//通过表的#id 可以得到每页多少条
+                            var pageNumber=$table2.bootstrapTable('getOptions').pageNumber;//通过表的#id 可以得到当前第几页
+                            return pageSize * (pageNumber - 1) + index + 1;//返回每条的序号： 每页条数 * （当前页 - 1 ）+ 序号
+                        }
+                    },
+                    {title: "单号", field: "receiptNum", align: "center"},
+                    {title: "发货单位", field: "deliveryFromAndTime", align: "center"},
+                    {title: "产品名称", field: "productname", align: "center"},
+                    {title: "厂家", field: "factory", align: "center"},
+                    {title: "单位", field: "unit", align: "center"},
+                    {title: "数量", field: "number", align: "center"},
+                    {title: "接货地址", field: "arriveStationAndTime", align: "center"},
+                    {title: "接货员", field: "fetchGoodsManAndTime", align: "center"},
+                    {title: "验货员", field: "examineGoodsManAndTime", align: "center"},
+                    {title: "复核员", field: "checkGoodsManAndTime", align: "center"},
+                    {title: "退单员", field: "chargeBackManAndTime", align: "center"},
+                    {title: "理货上架", field: "groundingManAndTime", align: "center"}
+                ]
+            ],
+            url: '/console/receipt/getAllReceipts',
+            queryParams: function (params) {
+                return params;
+            },
+            responseHandler: function (res) {
+                var pageInfo = res.result.pageInfo;
+                console.log('table res');
+                var pageNum = pageInfo.pageNum+1;
+                var pageSize =pageInfo.pageSize;
+                var total = pageInfo.total;
+                var firstPage = pageInfo.firstPage;
+                var lastPage = pageInfo.lastPage;
+                var isLastPage = pageInfo.isLastPage;
+
+                clearTimeout(timer1);
+                if(isLastPage){
+                    if(firstPage == lastPage){
+                        timer1=setTimeout(function(){
+
+                            $table.bootstrapTable('refresh',{silent: true});
+
+                        },timeInterVal);
+                    }else{
+
+                        timer1=setTimeout(function(){
+                            $table.bootstrapTable('selectPage',1);
+
+                        },timeInterVal);
+                    }
+                }else{
+
+                    timer1=setTimeout(function(){
+                        $table.bootstrapTable('nextPage');
+
+                    },timeInterVal);
+                }
+
+                return {
+                    rows: res.result.pageInfo.list,
+                    total: res.result.pageInfo.total
+                }
+            }
+
+        });
+    }
+    function initDataGrid2() {
+        $table2.bootstrapTable({
+            height: tableModel.getHeight(),
+            idField: "uid",
+            // checkboxHeader: true,
+            columns: [
+                [{title: "物流中心配送信息一览表", halign: "center", align: "center", colspan: 16}],
+
+                [
+                    {title: "数据部", valign: "middle", align: "center", colspan: 9, rowspan: 1},
+                    {title: "仓储部", valign: "middle", align: "center", colspan: 1, rowspan: 1},
+                    {title: "数据部", valign: "middle", align: "center", colspan: 1, rowspan: 1},
+                    {title: "仓储部", valign: "middle", align: "center", colspan: 1, rowspan: 1},
+                    {title: "配送部", valign: "middle", align: "center", colspan: 4, rowspan: 1},
+                    //{title: "松下a", valign: "middle", align: "center", colspan: 2, rowspan: 1}
+                ],
+
+                [
+                    //增加选择列
+                    {checkbox: true},
+                    /*{title: "操作", field: "operate", align: 'center', events: operateEvents, formatter: operateFormatter},*/
+                    // {title: "状态", field: "state", align: "center"},
+                    {
+                        field : 'Number',
+                        title : '序号',
+                        align: 'center',
+                        width: 20,
+                        formatter : function(value, row, index) {
+                            //return index + 1;
+                            var pageSize=$table2.bootstrapTable('getOptions').pageSize;//通过表的#id 可以得到每页多少条
+                            var pageNumber=$table2.bootstrapTable('getOptions').pageNumber;//通过表的#id 可以得到当前第几页
+                            return pageSize * (pageNumber - 1) + index + 1;//返回每条的序号： 每页条数 * （当前页 - 1 ）+ 序号
+                        }
+                    },
+                    {title: "单号", field: "distribNum", align: "center"},
+                    {title: "订货单位<br/>出货时间", field: "orderinfor", align: "center"},
+                    {title: "产品名称", field: "productname", align: "center"},
+                    {title: "单位", field: "unit", align: "center"},
+                    {title: "数量", field: "number", align: "center"},
+                    {title: "厂家", field: "factory", align: "center"},
+                    {title: "接单员", field: "recestartend", align: "center"},
+                    {title: "配货员", field: "pickstartend", align: "center"},
+                    {title: "开单员", field: "datastartend", align: "center"},
+                    {title: "复核员", field: "checkstartend", align: "center"},
+                    {title: "打包员", field: "packstartend", align: "center"},
+                    {title: "送货员", field: "diststartend", align: "center"},
+                    {title: "收货地<br/>发出时间", field: "shipinfor", align: "center"},
+                    {title: "收货<br/>到货时间", field: "arriinfor", align: "center"}
+                ]
+            ],
+            // url: '/console/distrib/listrole',
+            url: '/console/distrib/listrole',
+            queryParams: function (params) {
+                //var state = [0,1];
+                return params;
+            },
+            responseHandler: function (res) {
+                console.log('table2 res');
+                var pageInfo = res.result.pageInfo;
+                var pageNum = pageInfo.pageNum+1;
+                var pageSize =pageInfo.pageSize;
+                var total = pageInfo.total;
+                var firstPage = pageInfo.firstPage;
+                var lastPage = pageInfo.lastPage;
+                var isLastPage = pageInfo.isLastPage;
+
+                clearTimeout(timer2);
+                if(isLastPage){
+                    if(firstPage == lastPage){
+                        timer2=setTimeout(function(){
+
+                            $table2.bootstrapTable('refresh',{silent: true});
+
+                        },timeInterVal);
+                    }else{
+
+                        timer2=setTimeout(function(){
+                            $table2.bootstrapTable('selectPage',1);
+
+                        },timeInterVal);
+                    }
+                }else{
+
+                   timer2= setTimeout(function(){
+                        $table2.bootstrapTable('nextPage');
+
+                    },timeInterVal);
+                }
+
+                return {
+                    rows: res.result.pageInfo.list,
+                    total: res.result.pageInfo.total
+                }
+            },
+            // search: true,
+            // searchOnEnterKey: true,
+            sortName: 'createdat',
+            sortOrder: 'asc',
+            sidePagination: 'server',
+            pagination: true,
+            pageSize: 8,
+            pageList: [20, 40, 50, 100],
+            singleSelect: true,
+            onlyInfoPagination:true
+            // showRefresh: true,
+            // toolbar: "#toolbar",
+            // showToggle: true,
+        });
+    }
+
+    function initDataGrid3() {
+        $table3.bootstrapTable({
+            height: tableModel.getHeight(),
+            idField: "id",
+            // checkboxHeader: true,
+            columns: [
+                [{title: "物流中心调货信息一览表", halign: "center", align: "center", colspan: 17}],
+
+                [
+                    {title: "采购部", valign: "middle", align: "center", colspan: 9, rowspan: 1},
+                    {title: "配送部", valign: "middle", align: "center", colspan: 1, rowspan: 1},
+                    {title: "采购/数据部", valign: "middle", align: "center", colspan: 1, rowspan: 1},
+                    {title: "仓储部", valign: "middle", align: "center", colspan: 2, rowspan: 1},
+                    {title: "配送部", valign: "middle", align: "center", colspan: 4, rowspan: 1},
+                    //{title: "松下a", valign: "middle", align: "center", colspan: 2, rowspan: 1}
+                ],
+
+                [
+                    //增加选择列
+                    {checkbox: true},
+                    /*{title: "操作", field: "operate", align: 'center', events: operateEvents, formatter: operateFormatter},*/
+                    // {title: "状态", field: "state", align: "center"},
+                    {
+                        field : 'Number',
+                        title : '序号',
+                        align: 'center',
+                        width: 20,
+                        formatter : function(value, row, index) {
+                            //return index + 1;
+                            var pageSize=$table3.bootstrapTable('getOptions').pageSize;//通过表的#id 可以得到每页多少条
+                            var pageNumber=$table3.bootstrapTable('getOptions').pageNumber;//通过表的#id 可以得到当前第几页
+                            return pageSize * (pageNumber - 1) + index + 1;//返回每条的序号： 每页条数 * （当前页 - 1 ）+ 序号
+                        }
+                    },
+                    {title: "单号", field: "bizno", align: "center"},
+                    {title: "订货单位<br/>出货时间", field: "orderinfor", align: "center"},
+                    {title: "产品名称", field: "productName", align: "center"},
+                    {title: "单位", field: "unit", align: "center"},
+                    {title: "数量", field: "quantity", align: "center"},
+                    {title: "厂家", field: "manufacture", align: "center"},
+                    {title: "<div>调货单位 | 调货</div>", field: "transferstartend", align: "center"},
+                    {title: "拿货", field: "fetchstartend", align: "center"},
+                    {title: "开单", field: "datastartend", align: "center"},
+                    {title: "验货", field: "checkstartend", align: "center"},
+                    {title: "复核", field: "recheckstartend", align: "center"},
+                    {title: "打包", field: "packstartend", align: "center"},
+                    {title: "送货", field: "diststartend", align: "center"},
+                    {title: "收货地<br/>发出时间", field: "shipinfor", align: "center"},
+                    {title: "收货<br/>到货时间", field: "arriinfor", align: "center"}
+                ]
+            ],
+            // url: '/console/distrib/listrole',
+            url: '/console/transfer/getAllTransferInfoWithNoDone',
+            queryParams: function (params) {
+                //var state = [0,1];
+                return params;
+            },
+            responseHandler: function (res) {
+                console.log('table3 res');
+                var pageInfo = res.result.pageInfo;
+                var pageNum = pageInfo.pageNum+1;
+                var pageSize =pageInfo.pageSize;
+                var total = pageInfo.total;
+                var firstPage = pageInfo.firstPage;
+                var lastPage = pageInfo.lastPage;
+                var isLastPage = pageInfo.isLastPage;
+
+                clearTimeout(timer3);
+                if(isLastPage){
+                    if(firstPage == lastPage){
+                        timer3=setTimeout(function(){
+
+                            $table3.bootstrapTable('refresh',{silent: true});
+
+                        },timeInterVal);
+                    }else{
+
+                        timer3=setTimeout(function(){
+                            $table3.bootstrapTable('selectPage',1);
+
+                        },timeInterVal);
+                    }
+                }else{
+
+                    timer3= setTimeout(function(){
+                        $table3.bootstrapTable('nextPage');
+
+                    },timeInterVal);
+                }
+
+                return {
+                    rows: res.result.pageInfo.list,
+                    total: res.result.pageInfo.total
+                }
+            },
+            // search: true,
+            // searchOnEnterKey: true,
+            sortName: 'createdat',
+            sortOrder: 'asc',
+            sidePagination: 'server',
+            pagination: true,
+            pageSize: 8,
+            pageList: [20, 40, 50, 100],
+            singleSelect: true,
+            onlyInfoPagination:true
+            // showRefresh: true,
+            // toolbar: "#toolbar",
+            // showToggle: true,
+        });
+    }
+
+
+    function operateFormatter(value, row, index) {
+        return [
+            '<a href="/console/distrib/form?uid=' + row.uid + '" >',
+            '<i class="glyphicon glyphicon-edit"></i>修改',
+            '</a>  ',
+            '<a class="remove" href="javascript:void(0);" >',
+            '<i class="glyphicon glyphicon-remove"></i>删除',
+            '</a>'
+        ].join('');
+    }
+
+
+    window.operateEvents = {
+        'click .remove': function (e, value, row, index) {
+            if (row.state !== 1) {
+                alert("已进入流程或流程结束，不能删除！");
+            } else {
+                operaModel.delRow(row.uid, '/console/distrib/delete', 'uid');
+            }
+        }
+    };
+
+
+    /*]]>*/
+
+</script>
+</html>

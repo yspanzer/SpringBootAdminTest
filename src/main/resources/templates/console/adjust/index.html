@@ -1,0 +1,204 @@
+<!DOCTYPE HTML>
+
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head th:include="console/header">
+</head>
+<body>
+<section class="content-header">
+    <h1>调货管理</h1>
+    <small>列表管理</small>
+</section>
+<section class="content table-content">
+    <table id="dataGrid"></table>
+</section>
+<div id="toolbar">
+    <a href="/console/transfer/form" class="btn btn-primary">新增调货</a>
+    <a status="1" href="javascript:;" class="btn btn-primary">接货处理</a>
+    <a status="2" href="javascript:;" class="btn btn-primary">验货处理</a>
+    <a status="3" href="javascript:;" class="btn btn-primary">复核处理</a>
+    <a status="4" href="javascript:;" class="btn btn-primary">退单处理</a>
+    <a status="5" href="javascript:;" class="btn btn-primary">上架处理</a>
+</div>
+<div th:include="console/footer"></div>
+</body>
+<script type="text/javascript">
+
+    /*<![CDATA[*/
+
+    $table = $("#dataGrid");
+    var actionButtonHandler = {
+
+        checkSelect: function (selRow) {
+
+            return !!selRow;
+        },
+        popFormlayer: function (url, title) {
+            title = title || "";
+            layer.open({
+                type: 2,
+                title: title,
+                maxmin: true,
+                area: ['800px', '500px'],
+                content: url
+            });
+        },
+        buttonClick: function () {
+
+            var _this = this;
+            $("#toolbar a[status]").click(function () {
+                var me = $(this);
+                var selectRow = $table.bootstrapTable('getSelections')[0];
+                if (!_this.checkSelect(selectRow)) {
+                    layer.msg('请选择一行进行操作')
+                    return;
+                }
+
+                var status = parseInt(me.attr("status"));
+                var bizStatus = selectRow.state;
+                switch (status) {
+                    case 1://接货处理
+                        console.log(1);
+                        if (bizStatus > 2) {
+                            layer.msg('状态不对');
+                            return;
+                        }
+                        break;
+                    case 2://验货处理
+                        console.log(2);
+
+                        if (bizStatus > 4) {
+                            layer.msg('状态不对');
+                            return;
+                        }
+                        break;
+                    case 3://复核处理
+                        console.log(3);
+                        if (bizStatus > 6) {
+                            layer.msg('状态不对');
+                            return;
+                        }
+                        break;
+                    case 4://退单处理
+                        if (bizStatus > 8) {
+                            layer.msg('状态不对');
+                            return;
+                        }
+                        console.log(4);
+                        break;
+                    case 5://上架处理
+                        console.log(5);
+                        if (bizStatus > 10) {
+                            layer.msg('状态不对');
+                            return;
+                        }
+                        break;
+                }
+
+                var url = "/console/receipt/formlayer?id=" + selectRow.id;
+                _this.popFormlayer(url, '开始截止页面');
+            });
+        }
+
+    };
+
+    $(function () {
+        initDataGrid();
+        actionButtonHandler.buttonClick();
+    });
+
+    function initDataGrid() {
+        $table.bootstrapTable({
+            height: tableModel.getHeight(),
+            idField: "uid",
+            checkboxHeader: true,
+            clickToSelect: true, //是否启用点击选中行
+            search: true,
+            searchOnEnterKey: true,
+            sortName: 'createdat',
+            sortOrder: 'asc',
+            pagination: true,
+            sidePagination: 'server',
+            pageSize: 10,
+            pageList: [20, 40, 50, 100],
+            toolbar: "#toolbar",
+            showRefresh: true,
+            showToggle: true,
+            singleSelect: true,
+            columns: [
+                [{title: "物流中心收货信息一览表", halign: "center", align: "center", colspan: 16}],
+
+                [
+                    {title: "医院/厂家", valign: "middle", align: "center", colspan: 9, rowspan: 1},
+                    {title: "配送部", valign: "middle", align: "center", colspan: 1, rowspan: 1},
+                    {title: "采购/仓储部", valign: "middle", align: "center", colspan: 1, rowspan: 1},
+                    {title: "采购/数据部", valign: "middle", align: "center", colspan: 2, rowspan: 1},
+                    {title: "仓储部", valign: "middle", align: "center", colspan: 4, rowspan: 1}
+                ],
+
+                [
+                    //增加选择列
+                    {checkbox: true},
+                    /*{title: "操作", field: "operate", align: 'center', events: operateEvents, formatter: operateFormatter},*/
+                    // {title: "单据状态", field: "state", align: "center", width: '100'},
+                    {title: "单号", field: "receiptNum", align: "center"},
+                    {title: "订货单位", field: "deliveryFromAndTime", align: "center"},
+                    {title: "产品名称", field: "productname", align: "center"},
+                    {title: "单位", field: "unit", align: "center"},
+                    {title: "数量", field: "number", align: "center"},
+                    {title: "厂家", field: "factory", align: "center"},
+                    {title: "拿货", field: "arriveStationAndTime", align: "center"},
+                    // {title: "调货", field: "fetchGoodsManAndTime", align: "center"},
+                    {title: "<div>调货单位</div><div>调货</div>", field: "examineGoodsManAndTime", align: "center"},
+                    {title: "采购数据", field: "checkGoodsManAndTime", align: "center"},
+                    {title: "验货", field: "chargeBackManAndTime", align: "center"},
+                    {title: "复核", field: "groundingManAndTime", align: "center"},
+                    {title: "打包", field: "groundingManAndTime2", align: "center"},
+                    {title: "送货", field: "groundingManAndTime4", align: "center"},
+                    {title: "收货地", field: "groundingManAndTime3", align: "center"},
+                    {title: "收货", field: "groundingManAndTime5", align: "center"}
+                ]
+            ],
+            url: '/console/transfer/getAllTransferInfoes',
+            queryParams: function (params) {
+                return params;
+            },
+            responseHandler: function (res) {
+                return {
+                    rows: res.result.pageInfo.list,
+                    total: res.result.pageInfo.total
+                }
+            }
+
+        });
+    }
+
+
+    function operateFormatter(value, row, index) {
+        return [
+            '<a href="/console/transfer/form?uid=' + row.uid + '" >',
+            '<i class="glyphicon glyphicon-edit"></i>修改',
+            '</a>  ',
+            '<a class="remove" href="javascript:void(0);" >',
+            '<i class="glyphicon glyphicon-remove"></i>删除'
+        ].join('');
+    }
+
+
+    window.operateEvents = {
+        'click .remove': function (e, value, row, index) {
+            if (row.state !== 1) {
+                alert("已进入流程或流程结束，不能删除！");
+            } else {
+                operaModel.delRow(row.uid, '/console/transfer/delete', 'uid');
+            }
+        }
+    };
+
+
+    /*]]>*/
+
+
+</script>
+</html>

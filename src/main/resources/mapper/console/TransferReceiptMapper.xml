@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.geekcattle.mapper.console.TransferReceiptMapper">
+    <!--<resultMap id="BaseResultMap" type="com.geekcattle.model.console.TransferReceiptMapper" >
+        &lt;!&ndash;
+          WARNING - @mbg.generated
+        &ndash;&gt;
+        <id column="id" property="id" jdbcType="INTEGER" />
+        <result column="uid" property="uid" jdbcType="VARCHAR" />
+        <result column="bizno" property="bizno" jdbcType="VARCHAR" />
+        <result column="orderunit" property="orderunit" jdbcType="VARCHAR" />
+        <result column="ordertime" property="ordertime" jdbcType="TIMESTAMP" />
+        <result column="product_name" property="productName" jdbcType="VARCHAR" />
+        <result column="unit" property="unit" jdbcType="VARCHAR" />
+        <result column="quantity" property="quantity" jdbcType="INTEGER" />
+        <result column="manufacture" property="manufacture" jdbcType="VARCHAR" />
+        <result column="transferunit" property="transferunit" jdbcType="VARCHAR" />
+        <result column="transferman" property="transferman" jdbcType="VARCHAR" />
+        <result column="transfer_time_begin" property="transferTimeBegin" jdbcType="TIMESTAMP" />
+        <result column="transfer_time_end" property="transferTimeEnd" jdbcType="TIMESTAMP" />
+        <result column="fetch_goods_man" property="fetchGoodsMan" jdbcType="VARCHAR" />
+        <result column="fetch_goods_begin" property="fetchGoodsBegin" jdbcType="TIMESTAMP" />
+        <result column="fetch_goods_end" property="fetchGoodsEnd" jdbcType="TIMESTAMP" />
+        <result column="data_man" property="dataMan" jdbcType="VARCHAR" />
+        <result column="data_time_begin" property="dataTimeBegin" jdbcType="TIMESTAMP" />
+        <result column="data_time_end" property="dataTimeEnd" jdbcType="TIMESTAMP" />
+        <result column="check_man" property="checkMan" jdbcType="VARCHAR" />
+        <result column="check_time_begin" property="checkTimeBegin" jdbcType="TIMESTAMP" />
+        <result column="check_time_end" property="checkTimeEnd" jdbcType="TIMESTAMP" />
+        <result column="recheck_man" property="recheckMan" jdbcType="VARCHAR" />
+        <result column="recheck_time_begin" property="recheckTimeBegin" jdbcType="TIMESTAMP" />
+        <result column="recheck_time_end" property="recheckTimeEnd" jdbcType="TIMESTAMP" />
+        <result column="pack_man" property="packMan" jdbcType="VARCHAR" />
+        <result column="pack_time_begin" property="packTimeBegin" jdbcType="TIMESTAMP" />
+        <result column="pack_time_end" property="packTimeEnd" jdbcType="TIMESTAMP" />
+        <result column="delivery_man" property="deliveryMan" jdbcType="VARCHAR" />
+        <result column="delivery_time_begin" property="deliveryTimeBegin" jdbcType="TIMESTAMP" />
+        <result column="delivery_time_end" property="deliveryTimeEnd" jdbcType="TIMESTAMP" />
+        <result column="receive_address" property="receiveAddress" jdbcType="VARCHAR" />
+        <result column="receive_time" property="receiveTime" jdbcType="TIMESTAMP" />
+        <result column="receive_man" property="receiveMan" jdbcType="VARCHAR" />
+        <result column="receive_end_time" property="receiveEndTime" jdbcType="TIMESTAMP" />
+        <result column="state" property="state" jdbcType="INTEGER" />
+        <result column="remark" property="remark" jdbcType="VARCHAR" />
+        <result column="billno" property="billno" jdbcType="VARCHAR" />
+        <result column="createtime" property="createtime" jdbcType="TIMESTAMP" />
+        <result column="modifytime" property="modifytime" jdbcType="TIMESTAMP" />
+        <result column="recovery" property="recovery" jdbcType="INTEGER"/>
+    </resultMap>-->
+
+    <!--查询已回收调货列表-->
+    <select id="selectRecoveryed" parameterType="TransferReceipt" resultType="com.geekcattle.model.console.TransferReceipt">
+        select TR.*,TR.product_name as productName,
+        RE.receipt_num as receiptNum,RE.delivery_unit as deliveryUnit,
+        RE.delivery_time as deliveryTime,RE.productname as rproductname,
+        RE.factory as rfactory,RE.unit as runit,RE.number as rnumber,
+        RE.receipt_addr as rreceiptAddr,RE.state as rstate
+        from transfer_info TR
+        left join receipt RE on TR.bizno = RE.transferno
+        where TR.state = 15 and TR.recovery = 1
+        <if test="bizno != null and bizno != ''">
+            and TR.bizno like concat(concat('%',#{bizno,jdbcType=VARCHAR}),'%')
+        </if>
+        <if test="receiveAddress != null and receiveAddress != ''">
+            and TR.receive_address like concat(concat('%',#{receiveAddress,jdbcType=VARCHAR}),'%')
+        </if>
+        order by TR.state asc,TR.createtime desc
+    </select>
+
+    <!--查询未回收调货列表-->
+    <select id="selectUnRecovery" parameterType="TransferReceipt" resultType="com.geekcattle.model.console.TransferReceipt">
+        select TR.*,TR.product_name as productName,
+        RE.receipt_num as receiptNum,RE.delivery_unit as deliveryUnit,
+        RE.delivery_time as deliveryTime,RE.productname as rproductname,
+        RE.factory as rfactory,RE.unit as runit,RE.number as rnumber,
+        RE.receipt_addr as rreceiptAddr,RE.state as rstate
+        from transfer_info TR
+        left join receipt RE on TR.bizno = RE.transferno
+        where TR.state = 15 and TR.recovery = 0
+        <if test="bizno != null and bizno != ''">
+            and TR.bizno like concat(concat('%',#{bizno,jdbcType=VARCHAR}),'%')
+        </if>
+        <if test="receiveAddress != null and receiveAddress != ''">
+            and TR.receive_address like concat(concat('%',#{receiveAddress,jdbcType=VARCHAR}),'%')
+        </if>
+        order by TR.state asc,TR.createtime desc
+    </select>
+
+
+</mapper>

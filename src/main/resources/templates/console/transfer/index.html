@@ -1,0 +1,478 @@
+<!DOCTYPE HTML>
+
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head th:include="console/header">
+</head>
+<body>
+<style>
+    .searchBox {
+        margin: 5px 0;
+        clear: both;
+    }
+    .searchBox .inline-block {
+        float: left;
+        margin-right: 20px;
+    }
+    .searchBox .inline-block > input {
+        display: inline-block;
+        width: 125px;
+        padding: 0 5px;
+    }
+</style>
+<section class="content-header">
+    <h1>调货管理</h1>
+    <!--<small>列表管理</small>-->
+</section>
+<ul id="myTab" class="nav nav-tabs">
+    <li class="active">
+        <a href="#unfinish" data-toggle="tab">未完成</a>
+    </li>
+    <li ><a href="#finish" data-toggle="tab">已完成</a></li>
+</ul>
+<div id="myTabContent" class="tab-content">
+    <div class="tab-pane fade in active" id="unfinish">
+        <section class="content table-content">
+            <table id="dataGrid"></table>
+        </section>
+        <div id="toolbar">
+            <div class="btn-group" >
+                <a href="/console/transfer/form" class="btn btn-primary">新增调货</a>
+                <a status="1" href="javascript:;" class="btn btn-primary">调货处理</a>
+                <a status="2" href="javascript:;" class="btn btn-primary">拿货处理</a>
+                <a status="3" href="javascript:;" class="btn btn-primary">开单处理</a>
+                <a status="4" href="javascript:;" class="btn btn-primary">验货处理</a>
+                <a status="5" href="javascript:;" class="btn btn-primary">复核处理</a>
+                <a status="6" href="javascript:;" class="btn btn-primary">打包处理</a>
+                <a status="7" href="javascript:;" class="btn btn-primary">送货处理</a>
+            </div>
+
+
+            <div class="searchBox">
+
+                <div class="inline-block">
+                    <label for="billno" class="control-label">单据编号:</label>
+                    <input type="text" name="billno" class="form-control" id="billno"/>
+                </div>
+                <div class="inline-block">
+                    <label for="receaddr" class=" control-label">收货地址:</label>
+                    <input type="text" name="receaddr" class="form-control" id="receaddr"/>
+                </div>
+                <div class="inline-block">
+                    <label for="creatTimeBegin" class="control-label">制单开始:</label>
+                    <input type="text" name="creatTimeBegin" class="form-control" id="creatTimeBegin"/>
+                </div>
+                <div class="inline-block">
+                    <label for="creatTimeEnd" class="control-label">制单截止:</label>
+                    <input type="text" name="creatTimeEnd" class="form-control" id="creatTimeEnd"/>
+                </div>
+                <a href="javascript:serachclick()" class="btn btn-primary">查询</a>
+                <a href="javascript:excelclick()" class="btn btn-primary">导出</a>
+            </div>
+        </div>
+    </div>
+    <div class="tab-pane fade" id="finish">
+        <section class="content table-content">
+            <table id="dataGrid2"></table>
+        </section>
+
+        <div id="toolbar2">
+            <div class="searchBox">
+                <div class="inline-block">
+                    <label for="billno2" class="control-label">单据编号:</label>
+                    <input type="text" name="billno2" class="form-control" id="billno2"/>
+                </div>
+                <div class="inline-block">
+                    <label for="receaddr2" class=" control-label">收货地址:</label>
+                    <input type="text" name="receaddr2" class="form-control" id="receaddr2"/>
+                </div>
+                <div class="inline-block">
+                    <label for="creatTimeBegin2" class="control-label">制单开始:</label>
+                    <input type="text" name="creatTimeBegin2" class="form-control" id="creatTimeBegin2"/>
+                </div>
+                <div class="inline-block">
+                    <label for="creatTimeEnd2" class="control-label">制单截止:</label>
+                    <input type="text" name="creatTimeEnd2" class="form-control" id="creatTimeEnd2"/>
+                </div>
+                <a href="javascript:serachclick2()" class="btn btn-primary">查询</a>
+                <a href="javascript:excelclick2()" class="btn btn-primary">导出</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:include="console/footer"></div>
+</body>
+<script type="text/javascript">
+
+    /*<![CDATA[*/
+
+    $table = $("#dataGrid");
+    $table2 = $("#dataGrid2");
+    var actionButtonHandler = {
+
+        checkSelect: function (selRow) {
+
+            return !!selRow;
+        },
+        popFormlayer: function (url, title) {
+            title = title || "";
+            layer.open({
+                type: 2,
+                title: title,
+                maxmin: true,
+                area: ['800px', '550px'],
+                content: url
+            });
+        },
+        buttonClick: function () {
+
+            var _this = this;
+            $("#toolbar a[status]").click(function () {
+                var me = $(this);
+                var selectRow = $table.bootstrapTable('getSelections')[0];
+                if (!_this.checkSelect(selectRow)) {
+                    layer.msg('请选择一行进行操作')
+                    return;
+                }
+
+                var status = parseInt(me.attr("status"));
+                var bizStatus = selectRow.state;
+                switch (status) {
+                    case 1://接货处理
+                        console.log(1);
+                        if (bizStatus > 2) {
+                            layer.msg('状态不对');
+                            return;
+                        }
+                        break;
+                    case 2://验货处理
+                        console.log(2);
+
+                        if (bizStatus > 4) {
+                            layer.msg('状态不对');
+                            return;
+                        }
+                        break;
+                    case 3://复核处理
+                        console.log(3);
+                        if (bizStatus > 6) {
+                            layer.msg('状态不对');
+                            return;
+                        }
+                        break;
+                    case 4://退单处理
+                        if (bizStatus > 8) {
+                            layer.msg('状态不对');
+                            return;
+                        }
+                        console.log(4);
+                        break;
+                    case 5://上架处理
+                        console.log(5);
+                        if (bizStatus > 10) {
+                            layer.msg('状态不对');
+                            return;
+                        }
+                        break;
+                }
+
+                var url = "/console/transfer/formlayer?id=" + selectRow.id;
+                _this.popFormlayer(url, '开始截止页面');
+            });
+        }
+
+    };
+
+    $(function () {
+        initDataGrid();
+        initDataGrid2();
+        intiCalendar("#creatTimeBegin");
+        intiCalendar("#creatTimeEnd");
+        intiCalendar("#creatTimeBegin2");
+        intiCalendar("#creatTimeEnd2");
+        actionButtonHandler.buttonClick();
+        $('#myTab li:eq(0) a').tab('show');
+    });
+
+
+
+
+    function initDataGrid() {
+        $table.bootstrapTable({
+            height: tableModel.getHeight(),
+            idField: "id",
+            checkboxHeader: true,
+            //search: true,
+            //searchOnEnterKey: true,
+            sortName: 'createdat',
+            sortOrder: 'asc',
+            pagination: true,
+            clickToSelect: true, //是否启用点击选中行
+            sidePagination: 'server',
+            pageSize: 10,
+            pageList: [10, 20, 30],
+            smartDisplay:false,
+            toolbar: "#toolbar",
+            //showRefresh: true,
+            //showToggle: true,
+            singleSelect: true,
+            columns: [
+                [{title: "物流中心调货信息一览表", halign: "center", align: "center", colspan: 17}],
+
+                [
+                    {title: "采购部", valign: "middle", align: "center", colspan: 9, rowspan: 1},
+                    {title: "配送部", valign: "middle", align: "center", colspan: 1, rowspan: 1},
+                    {title: "采购/数据部", valign: "middle", align: "center", colspan: 1, rowspan: 1},
+                    {title: "仓储部", valign: "middle", align: "center", colspan: 2, rowspan: 1},
+                    {title: "配送部", valign: "middle", align: "center", colspan: 4, rowspan: 1}
+                ],
+
+                [
+                    //增加选择列
+                    {checkbox: true},
+                    /*{title: "操作", field: "operate", align: 'center', events: operateEvents, formatter: operateFormatter},*/
+                    // {title: "单据状态", field: "state", align: "center", width: '100'},
+                    {title: "单据状态", field: "state", align: "center",formatter: stateFormatter},
+                    {title: "单号", field: "bizno", align: "center"},
+                    {title: "订货单位<br/>出货时间", field: "orderinfor", align: "center"},
+                    {title: "产品名称", field: "productName", align: "center"},
+                    {title: "单位", field: "unit", align: "center"},
+                    {title: "数量", field: "quantity", align: "center"},
+                    {title: "厂家", field: "manufacture", align: "center"},
+                    // {title: "调货", field: "fetchGoodsManAndTime", align: "center"},
+                    {title: "<div>调货单位 | 调货</div>", field: "transferstartend", align: "center"},
+                    {title: "拿货", field: "fetchstartend", align: "center"},
+                    {title: "开单", field: "datastartend", align: "center"},
+                    {title: "验货", field: "checkstartend", align: "center"},
+                    {title: "复核", field: "recheckstartend", align: "center"},
+                    {title: "打包", field: "packstartend", align: "center"},
+                    {title: "送货", field: "diststartend", align: "center"},
+                    {title: "收货地<br/>发出时间", field: "shipinfor", align: "center"},
+                    {title: "收货<br/>到货时间", field: "arriinfor", align: "center"}
+                ]
+            ],
+            url: '/console/transfer/getAllTransferInfoWithNoDone',
+            queryParams: function (transferInfo) {
+                var transferInfo = {
+                    bizno:$("#billno").val(),
+                    receiveAddress:$("#receaddr").val(),
+                    createtime:$("#creatTimeBegin").val(),
+                    modifytime:$("#creatTimeEnd").val()
+                }
+                return transferInfo;
+            },
+            responseHandler: function (res) {
+                return {
+                    rows: res.result.pageInfo.list,
+                    total: res.result.pageInfo.total
+                }
+            }
+
+        });
+    }
+
+    function initDataGrid2() {
+        $table2.bootstrapTable({
+            height: tableModel.getHeight(),
+            idField: "id",
+            checkboxHeader: true,
+            //search: true,
+            //searchOnEnterKey: true,
+            sortName: 'createdat',
+            sortOrder: 'asc',
+            pagination: true,
+            clickToSelect: true, //是否启用点击选中行
+            sidePagination: 'server',
+            pageSize: 10,
+            pageList: [10, 20, 30],
+            smartDisplay:false,
+            toolbar: "#toolbar2",
+            //showRefresh: true,
+            //showToggle: true,
+            singleSelect: true,
+            columns: [
+                [{title: "物流中心调货信息一览表", halign: "center", align: "center", colspan: 17}],
+
+                [
+                    {title: "采购部", valign: "middle", align: "center", colspan: 9, rowspan: 1},
+                    {title: "配送部", valign: "middle", align: "center", colspan: 1, rowspan: 1},
+                    {title: "采购/数据部", valign: "middle", align: "center", colspan: 1, rowspan: 1},
+                    {title: "仓储部", valign: "middle", align: "center", colspan: 2, rowspan: 1},
+                    {title: "配送部", valign: "middle", align: "center", colspan: 4, rowspan: 1}
+                ],
+
+                [
+                    //增加选择列
+                    {checkbox: true},
+                    /*{title: "操作", field: "operate", align: 'center', events: operateEvents, formatter: operateFormatter},*/
+                    // {title: "单据状态", field: "state", align: "center", width: '100'},
+                    {title: "单据状态", field: "state", align: "center",formatter: stateFormatter},
+                    {title: "单号", field: "bizno", align: "center"},
+                    {title: "订货单位<br/>出货时间", field: "orderinfor", align: "center"},
+                    {title: "产品名称", field: "productName", align: "center"},
+                    {title: "单位", field: "unit", align: "center"},
+                    {title: "数量", field: "quantity", align: "center"},
+                    {title: "厂家", field: "manufacture", align: "center"},
+                    // {title: "调货", field: "fetchGoodsManAndTime", align: "center"},
+                    {title: "<div>调货单位 | 调货</div>", field: "transferstartend", align: "center"},
+                    {title: "拿货", field: "fetchstartend", align: "center"},
+                    {title: "开单", field: "datastartend", align: "center"},
+                    {title: "验货", field: "checkstartend", align: "center"},
+                    {title: "复核", field: "recheckstartend", align: "center"},
+                    {title: "打包", field: "packstartend", align: "center"},
+                    {title: "送货", field: "diststartend", align: "center"},
+                    {title: "收货地<br/>发出时间", field: "shipinfor", align: "center"},
+                    {title: "收货<br/>到货时间", field: "arriinfor", align: "center"}
+                ]
+            ],
+            url: '/console/transfer/getAllTransferInfoeWithDone',
+            queryParams: function (transferInfo) {
+                var transferInfo = {
+                    bizno:$("#billno2").val(),
+                    receiveAddress:$("#receaddr2").val(),
+                    createtime:$("#creatTimeBegin2").val(),
+                    modifytime:$("#creatTimeEnd2").val()
+                }
+                return transferInfo;
+            },
+            responseHandler: function (res) {
+                return {
+                    rows: res.result.pageInfo.list,
+                    total: res.result.pageInfo.total
+                }
+            }
+
+        });
+    }
+
+    var D_CONSTANT = {
+        1:'新增调货',
+        2:'调货开始',
+        3:'调货结束',
+        4:'拿货开始',
+        5:'拿货结束',
+        6:'开单开始',
+        7:'开单结束',
+        8:'验货开始',
+        9:'验货结束',
+        10:'复核开始',
+        11:'复核结束',
+        12:'打包开始',
+        13:'打包结束',
+        14:'送货开始',
+        15:'送货结束'
+    };
+    function stateFormatter(value, row, index) {
+
+        var state = D_CONSTANT[value];
+        var str = [];
+
+        switch (value)
+        {
+            case 1:
+                str.push('<small class="label label-success">');
+                break;
+            case 15:
+                str.push('<small class="label label-danger">');
+                break;
+            default:
+                if(value % 2 == 0){
+                    str.push('<small class="label label-info">');
+                }else{
+                    str.push('<small class="label label-warning">');
+                }
+        }
+        str.push(state);
+        str.push('</small>');
+        return str.join('');
+    }
+
+
+    function serachclick() {
+        $table.bootstrapTable('refresh');
+    }
+
+    function serachclick2() {
+        $table2.bootstrapTable('refresh');
+    }
+
+    function excelclick() {
+        var transferInfo = {
+            bizno:$("#billno").val(),
+            receiveAddress:$("#receaddr").val(),
+            createtime:$("#creatTimeBegin").val(),
+            modifytime:$("#creatTimeEnd").val()
+        }
+        var url = '/console/transfer/excel';
+        $.ajax({
+            url:url,
+            type:'get',
+            data:transferInfo,
+            dataType:'json',
+            success:function(result){
+                console.log(result);
+                if(result.referer){
+
+                }
+            }
+        })
+    }
+
+    function excelclick2() {
+        var transferInfo = {
+            bizno:$("#billno2").val(),
+            receiveAddress:$("#receaddr2").val(),
+            createtime:$("#creatTimeBegin2").val(),
+            modifytime:$("#creatTimeEnd2").val()
+        }
+        var url = '/console/transfer/excel2';
+        $.ajax({
+            url:url,
+            type:'get',
+            data:transferInfo,
+            dataType:'json',
+            success:function(result){
+                console.log(result);
+                if(result.referer){
+
+                }
+            }
+        })
+    }
+
+
+    function operateFormatter(value, row, index) {
+        return [
+            '<a href="/console/transfer/form?uid=' + row.uid + '" >',
+            '<i class="glyphicon glyphicon-edit"></i>修改',
+            '</a>  ',
+            '<a class="remove" href="javascript:void(0);" >',
+            '<i class="glyphicon glyphicon-remove"></i>删除'
+        ].join('');
+    }
+
+
+    window.operateEvents = {
+        'click .remove': function (e, value, row, index) {
+            if (row.state !== 1) {
+                alert("已进入流程或流程结束，不能删除！");
+            } else {
+                operaModel.delRow(row.uid, '/console/transfer/delete', 'uid');
+            }
+        }
+    };
+
+    function intiCalendar(eid){
+        $(eid).jeDate({
+            format: "YYYY-MM-DD hh:mm:ss"
+        });
+    }
+
+
+    /*]]>*/
+
+
+</script>
+</html>
